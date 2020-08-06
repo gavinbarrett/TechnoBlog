@@ -1,0 +1,90 @@
+html {
+	margin: 0;
+	padding: 0;
+	width: 100vw;
+	height 100vh;
+	overflow: hidden;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100vw;
+	height: 100vh;
+	background: #ffe1a8;
+}
+
+#app {
+	display: flex;
+	width: 100vw;
+	height: 100vh;
+}
+
+#heading {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	width: 80vw;
+	height: 7vh;
+}
+
+#loginbuttons {
+	display: flex;
+	justify-content: space-evenly;
+	align-items: center;
+	width: 15vw;
+	height: 4vh;
+	background: red;
+	border-radius: 8px;
+	margin-right: 1%;
+	color: white;
+}
+
+#signin {
+	cursor: pointer;
+}
+
+#signinWrapper {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: space-evenly;
+	width: 50vw;
+	height: 50vh;
+	background: purple;
+	border-radius: 12px;
+}
+
+#signup {
+	cursor: pointer;
+}
+
+#postselectorWrapper {
+	display: flex;
+	width: 20vw;
+	height: 100vh;
+	justify-content: center;
+	align-items: center;
+	background: pink;
+}
+
+#postselector {
+}
+
+#blogcanvasWrapper {
+	display: flex;
+	width: 80vw;
+	height: 93vh;
+	justify-content: center;
+	align-items: center;
+	background: orange;
+}
+
+#blogcanvas {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+}
