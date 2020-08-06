@@ -60,13 +60,64 @@ const getHashword = async (user) => {
 	});
 }
 
+const checkForUser = async (user) => {
+	const CMD = `SELECT * FROM users WHERE username='${user}'`;
+	return await new Promise((resolve, reject) => {
+		database.query(CMD, (err, rows) => {
+			if (err) reject(err);
+			// pull hashed password of the user if they exist
+			(rows[0] == undefined) ? resolve(0) : resolve(1);
+		});
+	});
+	
+}
+
+const computeHashword = async (pass) => {
+	const rounds = 10;
+	return await new Promise((resolve, reject) => {
+		bcrypt.genSalt(rounds, (err, salt) => {
+			if (err) reject(err);
+			bcrypt.hash(pass, salt, (err, hash) => {
+				if (err) throw err;
+				resolve(hash);
+			});
+		});
+	});
+}
+
+const addUser = async (user, pass, email) => {
+	// compute a new salted hash
+	const hashed = await computeHashword(pass);
+	
+	// create the sql query to add the user into the database
+	const CMD = `INSERT INTO users (username, hashword, email) VALUES ("${user}", "${hashed}", "${email}");`;
+	
+	// add the user to the database
+	database.query(CMD, (err, rows) => {
+		if (err) throw err;
+		console.log(`New user established: ${user}.`);
+	});
+}
+
+app.post('/sign_up', async (req, res) => {
+	// parse the submitted username, password, and email
+	const { user, pass, email } = req.body;
+	
+	// check if the username is available
+	const exists = await checkForUser(user);
+	
+	// add the user the the database if the provided name hasn't been taken
+	exists ? res.send(JSON.stringify({'user':'unavailable'})) : addUser(user, pass, email);
+
+	// return success upon user creation
+	res.send(JSON.stringify({'user':'established'}));
+});
+
 // log a user in to the application
 app.post('/sign_in', async (req, res) => {
-	console.log(req.body);
-	const user = req.body.user;
-	const pass = req.body.pass;
+	const { user, pass } = req.body;
+	
 	// FIXME: be sure to sanitize inputs
-	// sql command to retrieve 
 	
 	try {
 		// try to get the user's password
@@ -91,15 +142,34 @@ app.post('/sign_in', async (req, res) => {
 	res.send(JSON.stringify({'status':'logged in'}));
 });
 
-app.post('/make_post', (req, res) => {
+app.post('/add_post', (req, res) => {
 	console.log('Making a blog post!');
 	
+	// get field data
+	const {title, postbody, tags} = req.body;
+	console.log(title);
+	console.log(postbody);
+	console.log(tags);
+	// get the current time
 	const current_time = getTime();
-	database.query(`INSERT INTO blogposts (title, post, tags, datestamp, timestamp) VALUES ("Innovations in Quantum Computing", "The newest computing technology", "quantum computer", "${current_time}", "${current_time}")`, (err, rows) => {
+	// 
+	const CMD = `INSERT INTO blogposts (title, post, tags) VALUES ("${title}", "${postbody}", "${tags}")`;
+
+	database.query(CMD, (err, rows) => {
 		if (err) throw err;
 		console.log('Data received:\n' + rows);
 	});
 	res.send(JSON.stringify({"response":"Blog post made!"}));
+});
+
+app.get('/get_posts', (req, res) => {
+	const CMD = `SELECT * FROM blogposts`;
+	database.query(CMD, (err, rows) => {
+		if (err) throw err;
+		console.log(rows);
+		res.send(JSON.stringify({"posts": rows}));
+	});
+
 });
 
 app.get('/', (req, res) => {
