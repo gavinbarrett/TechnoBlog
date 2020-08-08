@@ -1,6 +1,8 @@
 const express = require('express');
 const mysql = require('mysql');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const app = express();
 const port = 8080;
@@ -129,9 +131,14 @@ app.post('/sign_in', async (req, res) => {
 		if (hashed) {
 			// FIXME: user has been authenticated
 			console.log('Passwords match.');
+
+			const token = jwt.sign({"user": user}, process.env.ACCESS_TOKEN_SECRET);
+			res.send(JSON.stringify({'access token':token}));
+			// FIXME: create a JWT to send to the user
 		} else {
 			// FIXME: user's provided password doesn't match
 			console.log('Passwords do not match.');
+			res.send(JSON.stringify({'login':'failed'}));
 		}
 	} catch(err) {
 		// FIXME: user not in database
@@ -143,17 +150,11 @@ app.post('/sign_in', async (req, res) => {
 });
 
 app.post('/add_post', (req, res) => {
-	console.log('Making a blog post!');
-	
 	// get field data
 	const {title, postbody, tags} = req.body;
-	console.log(title);
-	console.log(postbody);
-	console.log(tags);
 	// get the current time
 	const current_time = getTime();
-	// 
-	const CMD = `INSERT INTO blogposts (title, post, tags) VALUES ("${title}", "${postbody}", "${tags}")`;
+	const CMD = `INSERT INTO blogposts (title, post, tags) VALUES ("${title}", "${postbody}", "${tags}", "${current_time}")`;
 
 	database.query(CMD, (err, rows) => {
 		if (err) throw err;
@@ -163,13 +164,12 @@ app.post('/add_post', (req, res) => {
 });
 
 app.get('/get_posts', (req, res) => {
-	const CMD = `SELECT * FROM blogposts`;
-	database.query(CMD, (err, rows) => {
+	// get all of the posts from the database
+	database.query(`SELECT * FROM blogposts`, (err, rows) => {
 		if (err) throw err;
-		console.log(rows);
+		// return all of the posts
 		res.send(JSON.stringify({"posts": rows}));
 	});
-
 });
 
 app.get('/', (req, res) => {
@@ -178,4 +178,4 @@ app.get('/', (req, res) => {
 
 app.listen(port, () => {
 	console.log('Listening on port ' + port);
-})
+});
